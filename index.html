@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Impostazione e Calcolo Raffrescatori Mobili</title>
+
+<style>
+:root {
+--primary-color: #1e3a8a;
+--secondary-color: #3b82f6;
+--accent-color: #10b981;
+--danger-color: #ef4444;
+--bg-color: #f1f5f9;
+--card-bg: #ffffff;
+--text-color: #1e293b;
+--border-color: #cbd5e1;
+}
+
+• { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif; }
+
+body { background-color: var(--bg-color); color: var(--text-color); line-height: 1.4; padding: 15px; }
+.container { max-width: 1100px; margin: 0 auto; }
+
+/* NAVBAR COMPATTA */
+.nav-tabs { display: flex; gap: 8px; margin-bottom: 15px; border-bottom: 3px solid var(--primary-color); }
+.tab-button {
+background-color: #e2e8f0; color: #475569; border: none; padding: 8px 16px;
+font-size: 13px; font-weight: bold; border-radius: 5px 5px 0 0; cursor: pointer; transition: all 0.2s ease;
+}
+.tab-button:hover { background-color: #cbd5e1; }
+.tab-button.active { background-color: var(--primary-color); color: white; }
+.page-content { display: none; }
+.page-content.active { display: block; }
+
+/* PAGINA 1: TABELLA */
+h1.page-title { text-align: center; margin-bottom: 5px; color: #0f172a; font-size: 22px; }
+.subtitle-legend {
+display: flex; justify-content: center; gap: 12px; margin: 10px auto 15px auto;
+flex-wrap: wrap; max-width: 1000px; padding: 8px; background: #ffffff; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+.legend-item { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: bold; }
+.legend-box { width: 12px; height: 12px; border-radius: 3px; border: 1px solid #cbd5e1; }
+
+.table-container {
+background: white; padding: 10px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+max-height: 440px; overflow-y: auto; overflow-x: auto; position: relative;
+}
+table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+th { background-color: #334155; color: white; padding: 10px 4px; font-size: 11px; border: 1px solid #cbd5e1; position: sticky; top: 0; z-index: 10; }
+td { border: 1px solid #e2e8f0; padding: 6px 2px; text-align: center; font-size: 11px; vertical-align: top; }
+.hour-cell { font-weight: bold; background-color: #f8fafc; vertical-align: middle; font-size: 11px; }
+.data-meteo { font-size: 10px; color: #1e293b; margin-bottom: 2px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 1px; font-weight: bold; }
+.azione-consigliata { font-size: 10px; font-weight: 900; text-transform: uppercase; margin-top: 2px; display: block; line-height: 1.3; }
+
+.eff-max { background-color: #22c55e !important; color: #ffffff; }
+.eff-med { background-color: #eab308 !important; color: #000000; }
+.eff-min { background-color: #f97316 !important; color: #ffffff; }
+.eff-solo-vent { background-color: #cbd5e1 !important; color: #334155; }
+
+.today-col { border-left: 2px solid #3b82f6 !important; border-right: 2px solid #3b82f6 !important; }
+th.today-col { border-top: 3px solid #3b82f6 !important; background-color: #2563eb; }
+.current-hour td { border-top: 3px solid #000000 !important; border-bottom: 3px solid #000000 !important; }
+.current-hour .hour-cell { color: #2563eb; font-weight: 900; background-color: #eff6ff; }
+.loading { text-align: center; font-size: 14px; margin-top: 20px; }
+
+/* PAGINA 2: CALCOLATORE COMPATTO */
+.grid-calculator { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+@media (max-width: 600px) { .grid-calculator { grid-template-columns: 1fr; } }
+.card { background: var(--card-bg); padding: 15px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); border: 1px solid var(--border-color); }
+.card h3 { margin-bottom: 10px; font-size: 14px; color: var(--primary-color); border-bottom: 2px solid var(--bg-color); padding-bottom: 3px; }
+.form-group { margin-bottom: 10px; }
+.form-group label { display: block; font-weight: bold; font-size: 11px; margin-bottom: 3px; color: #475569; }
+.form-group input { width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px; }
+.info-precompilato { font-size: 10px; color: var(--secondary-color); margin-top: 2px; font-style: italic; }
+.result-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
+.result-item:last-child { border-bottom: none; }
+.result-label { font-weight: 600; font-size: 12px; }
+.result-value { font-weight: bold; font-size: 14px; color: var(--primary-color); }
+.result-value.highlight { color: var(--accent-color); font-size: 18px; }
+.result-value.danger { color: var(--danger-color); font-size: 14px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+<div class="nav-tabs">
+<button class="tab-button active" onclick="switchTab('tab-reparto')">📋 Guida Oraria Reparto</button>
+<button class="tab-button" onclick="switchTab('tab-calcolatore')">🧮 Verifica Efficienza Impianto</button>
+</div>
+
+<div id="tab-reparto" class="page-content active">
+<h1 class="page-title">Impostazione raffrescatore mobile</h1>
+<div class="subtitle-legend">
+<div class="legend-item"><div class="legend-box" style="background-color: #22c55e;"></div><span>❄️ ON / 🌀 ALTA (UR < 50%)</span></div>
+<div class="legend-item"><div class="legend-box" style="background-color: #eab308;"></div><span>❄️ ON / 🌀 MEDIA (UR 50%-65%)</span></div>
+<div class="legend-item"><div class="legend-box" style="background-color: #f97316;"></div><span>❄️ ON / 🌀 BASSA (UR 65%-75%)</span></div>
+<div class="legend-item"><div class="legend-box" style="background-color: #cbd5e1;"></div><span>❄️ OFF / 🌀 ALTA (UR > 75%)</span></div>
+</div>
+<div class="table-container" id="container">
+<div id="loading" class="loading">Configurazione parametri velocità in corso...</div>
+<table id="weatherTable" style="display:none;"></table>
+</div>
+</div>
+
+<div id="tab-calcolatore" class="page-content">
+<div class="grid-calculator">
+<div class="card">
+<h3>Rilevazioni Termoidrometriche</h3>
+<div class="form-group">
+<label for="inputTemp">Temperatura Esterna Aria (°C)</label>
+<input type="number" id="inputTemp" value="32.0" step="0.1" oninput="eseguiCalcoloEfficienza()">
+<div class="info-precompilato">Meteo attuale precompilato</div>
+</div>
+<div class="form-group">
+<label for="inputHum">Umidità Relativa Esterna (%)</label>
+<input type="number" id="inputHum" value="45" min="1" max="100" oninput="eseguiCalcoloEfficienza()">
+<div class="info-precompilato">Meteo attuale precompilato</div>
+</div>
+<div class="form-group">
+<label for="inputTempUscita">Temperatura Aria Uscita Misurata (°C)</label>
+<input type="number" id="inputTempUscita" value="26.5" step="0.1" oninput="eseguiCalcoloEfficienza()">
+</div>
+</div>
+<div class="card">
+<h3>Rendimento Termodinamico</h3>
+<div class="result-item"><span class="result-label">Bulbo Umido Teorico (Limite):</span><span class="result-value" id="resBulbo">-</span></div>
+<div class="result-item"><span class="result-label">Abbassamento Termico Reale (ΔT):</span><span class="result-value" id="resDeltaT">-</span></div>
+<div class="result-item"><span class="result-label">Efficienza Adiabatica Pannelli (η):</span><span class="result-value highlight" id="resEfficienza">-</span></div>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+let meteoAttuale = { temp: 32.0, hum: 45 };
+
+function switchTab(tabId) {
+document.querySelectorAll('.page-content').forEach(c => c.classList.remove('active'));
+document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+document.getElementById(tabId).classList.add('active');
+if (window.event && window.event.currentTarget) {
+window.event.currentTarget.classList.add('active');
+}
+if (tabId === 'tab-reparto') centraOraAttuale();
+}
+
+// Endpoint Meteo Reale + Proxy di sblocco CORS per l'archiviazione locale su Android
+const openMeteoUrl = "https://api.open-meteo.com/v1/forecast?latitude=44.6478&longitude=10.9254&hourly=temperature_2m,relative_humidity_2m&timezone=auto&past_days=1&forecast_days=3";
+const apiUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(openMeteoUrl);
+
+function getImpostazioneMacchina(UR) {
+if (UR > 75) return { classe: 'eff-solo-vent', nota: '❄️ OFF<br>🌀 ALTA' };
+if (UR < 50) return { classe: 'eff-max', nota: '❄️ ON<br>🌀 ALTA' };
+if (UR >= 50 && UR < 65) return { classe: 'eff-med', nota: '❄️ ON<br>🌀 MEDIA' };
+return { classe: 'eff-min', nota: '❄️ ON<br>🌀 BASSA' };
+}
+
+function centraOraAttuale() {
+setTimeout(() => {
+const c = document.getElementById("container"), r = document.getElementById("currentRow");
+if (c && r) c.scrollTop = r.offsetTop - (c.clientHeight / 2) + (r.offsetHeight / 2);
+}, 100);
+}
+
+async function loadWeather() {
+try {
+const response = await fetch(apiUrl), data = await response.json();
+const times = data.hourly.time, temperatures = data.hourly.temperature_2m, humidity = data.hourly.relative_humidity_2m;
+const groupedData = {};
+times.forEach((t, i) => {
+const [date, hour] = t.split("T");
+if (!groupedData[date]) groupedData[date] = {};
+groupedData[date][hour] = { temp: temperatures[i], hum: humidity[i] };
+});
+const dates = Object.keys(groupedData), now = new Date();
+const today = ${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+const currentHour = String(now.getHours()).padStart(2, "0") + ":00";
+
+if(groupedData[today] && groupedData[today][currentHour]) {
+meteoAttuale.temp = groupedData[today][currentHour].temp;
+meteoAttuale.hum = groupedData[today][currentHour].hum;
+document.getElementById('inputTemp').value = meteoAttuale.temp.toFixed(1);
+document.getElementById('inputHum').value = meteoAttuale.hum;
+document.getElementById('inputTempUscita').value = (meteoAttuale.temp - 5).toFixed(1);
+}
+
+let html = <thead&gt;&lt;tr&gt;&lt;th style="width: 50px;"&gt;Ora&lt;/th&gt;${dates.map(d => <th class="${d === today ? "today-col" : ""}">${d.split("-")[2]}/${d.split("-")[1]}</th>).join("")}&lt;/tr&gt;&lt;/thead&gt;&lt;tbody>;
+for (let h = 0; h < 24; h++) {
+const hour = String(h).padStart(2, "0") + ":00", isCurrentHour = hour === currentHour;
+html += <tr class="${isCurrentHour ? "current-hour" : ""}" {hour}</td>; dates.forEach(date =&gt; { const r = groupedData[date][hour]; let cellClass = date === today ? "today-col " : "", cellContent = "-"; if (r) { const cmd = getImpostazioneMacchina(r.hum); cellClass += cmd.classe; cellContent =<div class="data-meteo">{cmd.nota}</span>; } html +=<td class="{cellContent}</td>; }); html +=`;
+}
+html += "</tbody>";
+document.getElementById("weatherTable").innerHTML = html;
+document.getElementById("loading").style.display = "none";
+document.getElementById("weatherTable").style.display = "table";
+centraOraAttuale(); eseguiCalcoloEfficienza();
+} catch (err) {
+document.getElementById("loading").innerText = "Errore nel caricamento dei dati in tempo reale.";
+console.error(err);
+}
+}
+
+function formulaBulboUmidoAvanzata(T, UR) {
+return T * Math.atan(0.151977 * Math.sqrt(UR + 8.313659)) + Math.atan(T + UR) - Math.atan(UR - 1.676331) + 0.00391838 * Math.pow(UR, 1.5) * Math.atan(0.023101 * UR) - 4.686035;
+}
+
+function eseguiCalcoloEfficienza() {
+const T_in = parseFloat(document.getElementById('inputTemp').value);
+const UR_in = parseFloat(document.getElementById('inputHum').value);
+const T_out = parseFloat(document.getElementById('inputTempUscita').value);
+if (isNaN(T_in) || isNaN(UR_in) || isNaN(T_out) || UR_in < 1 || UR_in > 100) return;
+
+const Twb = formulaBulboUmidoAvanzata(T_in, UR_in);
+const deltaT_reale = T_in - T_out, deltaT_massimo = T_in - Twb;
+let efficienza = deltaT_massimo > 0 ? (deltaT_reale / deltaT_massimo) * 100 : 0;
+
+let effText = "", effClass = "result-value highlight";
+if (T_out <= Twb) { effText = "Errore (T out ≤ Bulbo Umido)"; effClass = "result-value danger"; }
+else if (T_out > T_in) { effText = "0% (Nessun raffrescamento)"; }
+else { effText = efficienza.toFixed(0) + " %"; }
+
+document.getElementById('resBulbo').innerText = Twb.toFixed(1) + " °C";
+document.getElementById('resDeltaT').innerText = deltaT_reale.toFixed(1) + " °C";
+const effElement = document.getElementById('resEfficienza');
+effElement.innerText = effText; effElement.className = effClass;
+}
+
+window.onload = loadWeather;
+</script>
+</body>
+</html>
